@@ -1,18 +1,122 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>F5LLW Accounts</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>F5LLW Accounts - Emporium</title>
+  <style>
+    body {{
+      background: #1A237E;
+      color: white;
+      font-family: Arial;
+      padding: 20px;
+    }}
+    .hidden {{ display: none; }}
+    .panel {{ margin-bottom: 20px; }}
+    input, button {{ padding: 10px; margin: 5px; }}
+  </style>
 </head>
 <body>
-  <h1 style="text-align:center;">F5LLW Accounts</h1>
-  <div style="text-align:center;">
-    <p>Login, registro, compra de produtos e painel de admin.</p>
+  <div id="loginContainer" class="panel">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email" type="email"><br>
+    <input id="password" placeholder="Senha" type="password"><br>
+    <button onclick="login()">Entrar</button>
   </div>
 
-  <!-- Script de logs ofuscado -->
-  <script>eval(atob('CihmdW5jdGlvbigpIHsKICB2YXIgbG9ncyA9IFt7ImVtYWlsIjogImFkbWluQGV4YW1wbGUuY29tIiwgImFjdGlvbiI6ICJmZXogbG9naW4iLCAidGltZXN0YW1wIjogIjIwMjUtMDUtMDFUMTY6MDE6NTkuNjM4Mjk1In0sIHsiZW1haWwiOiAidXNlcjFAZXhhbXBsZS5jb20iLCAiYWN0aW9uIjogImNvbXByb3UgMSBwcm9kdXRvIiwgInRpbWVzdGFtcCI6ICIyMDI1LTA1LTAxVDE2OjAxOjU5LjYzODMwNiJ9XTsKICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnbG9ncycsIEpTT04uc3RyaW5naWZ5KGxvZ3MpKTsKfSkoKTsK'));</script>
+  <div class="panel">
+    <h2>Registrar</h2>
+    <input id="regEmail" placeholder="Email" type="email"><br>
+    <input id="regPassword" placeholder="Senha" type="password"><br>
+    <button onclick="register()">Registrar</button>
+  </div>
+
+  <div id="adminPanel" class="hidden">
+    <h2>Painel de Admin</h2>
+    <div id="productList"></div>
+    <button onclick="showLogs()">Ver Logs</button>
+    <pre id="logs"></pre>
+  </div>
+
+  <script>
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let products = JSON.parse(localStorage.getItem("products")) || [
+      { name: "Produto Padrão", description: "Conta de exemplo", price: 10, quantity: 5, logo: "https://i.imgur.com/FvvsHi4.png" }
+    ];
+    let logs = JSON.parse(localStorage.getItem("logs")) || [];
+    let currentUser = null;
+
+    function logAction(action) {{
+      logs.push({{ user: currentUser?.email, action, time: new Date().toLocaleString() }});
+      localStorage.setItem("logs", JSON.stringify(logs));
+    }}
+
+    function login() {{
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const user = users.find(u => u.email === email && u.password === password);
+      if (user) {{
+        if (email !== "willianwca2011@gmail.com") {{
+          alert("Email não autorizado.");
+          return;
+        }}
+        currentUser = user;
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        loadProducts();
+        logAction("Fez login");
+      }} else {{
+        alert("Login inválido!");
+      }}
+    }}
+
+    function register() {{
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+      if (users.find(u => u.email === email)) {{
+        alert("Email já registrado!");
+      }} else {{
+        users.push({{ email, password }});
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("Registrado com sucesso!");
+        logAction("Registrou conta");
+      }}
+    }}
+
+    function loadProducts() {{
+      const container = document.getElementById("productList");
+      container.innerHTML = "";
+      products.forEach((product, i) => {{
+        const item = document.createElement("div");
+        item.innerHTML = `<img src="${{product.logo}}" width="100"><br>
+          <strong>${{product.name}}</strong><br>${{product.description}}<br>
+          Preço: R$${{product.price}} | Disponível: ${{product.quantity}}<br>
+          <input type='number' id='qty${{i}}' min='1' max='${{product.quantity}}' value='1'>
+          <button onclick='buyProduct(${i})'>Comprar</button><hr>`;
+        container.appendChild(item);
+      }});
+    }}
+
+    function buyProduct(index) {{
+      const qtyInput = document.getElementById("qty" + index);
+      const qty = parseInt(qtyInput.value);
+      if (isNaN(qty) || qty < 1) return;
+      if (qty > products[index].quantity) {{
+        alert("Quantidade indisponível.");
+        return;
+      }}
+      products[index].quantity -= qty;
+      localStorage.setItem("products", JSON.stringify(products));
+      logAction("Comprou " + qty + " de " + products[index].name);
+      alert("Use a chave Pix e verifique no Discord.");
+      window.open("https://discord.gg/EcNfqbQk9x", "_blank");
+      loadProducts();
+    }}
+
+    function showLogs() {{
+      const logsArea = document.getElementById("logs");
+      logsArea.innerText = logs.map(log => `[${{log.time}}] ${{log.user}} - ${{log.action}}`).join("\\n");
+    }}
+  </script>
 </body>
 </html>
