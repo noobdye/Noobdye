@@ -1,1 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Sobrevivência - Mundo Aberto</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #87CEEB; }
+        canvas { border: 2px solid black; }
+        .controls { position: fixed; bottom: 10px; width: 100%; display: flex; justify-content: center; }
+        button { padding: 15px 25px; font-size: 20px; background: #f0f0f0; border: none; cursor: pointer; }
+        #score { position: fixed; top: 10px; left: 10px; font-size: 20px; color: black; }
+        #healthBar { position: fixed; top: 30px; left: 10px; width: 100%; height: 20px; background-color: #ccc; }
+        #hungerBar { position: fixed; top: 50px; left: 10px; width: 100%; height: 20px; background-color: #FFD700; }
+        .landscape .controls { display: none; }
+        .portrait .controls { display: flex; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div class="controls">
+        <button id="moveUp">↑</button>
+        <button id="moveLeft">←</button>
+        <button id="moveDown">↓</button>
+        <button id="moveRight">→</button>
+    </div>
+    <div id="score">Pontos: 0</div>
+    <div id="healthBar"></div>
+    <div id="hungerBar"></div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
 
+        const player = {
+            x: 100, y: 100, width: 30, height: 30, speed: 5, health: 100, hunger: 100, weapon: "Espada de Madeira", damage: 10
+        };
+
+        let zombies = [];
+        let foodItems = [];
+        let potions = [];
+        let score = 0;
+
+        const weapons = [
+            { name: "Espada de Madeira", damage: 10 },
+            { name: "Espada de Ferro", damage: 20 },
+            { name: "Espada de Diamante", damage: 40 }
+        ];
+
+        const backgroundColors = ['#87CEEB', '#2F4F4F']; // Azul claro para dia e cinza escuro para noite
+        let isNight = false;
+
+        // Poções de Cura
+        function spawnPotion() {
+            const potion = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 20, height: 20, type: "cura"
+            };
+            potions.push(potion);
+        }
+
+        // Alimentos
+        function spawnFood() {
+            const food = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 20, height: 20, type: "comida"
+            };
+            foodItems.push(food);
+        }
+
+        // Atualizar Fome
+        function updateHunger() {
+            player.hunger -= 1;
+            if (player.hunger <= 0) {
+                player.health -= 1; // Perde saúde se a fome chegar a 0
+                if (player.health <= 0) {
+                    alert("Você morreu de fome!");
+                    resetGame();
+                }
+            }
+            document.getElementById('hungerBar').style.width = player.hunger + "%";
+        }
+
+        // Função de coleta de comida e poção
+        function collectItems() {
+            foodItems = foodItems.filter(food => {
+                if (Math.abs(player.x - food.x) < 20 && Math.abs(player.y - food.y) < 20) {
+                    player.hunger = Math.min(100, player.hunger + 30); // Comer aumenta a fome
+                    return false; // Remove o item de comida do mapa
+                }
+                return true;
+            });
+
+            potions = potions.filter(potion => {
+                if (Math.abs(player.x - potion.x) < 20 && Math.abs(player.y - potion.y) < 20) {
+                    player.health = Math.min(100, player.health + 20); // Poção de cura
+                    return false; // Remove a poção do mapa
+                }
+                return true;
+            });
+        }
+
+        // Função para spawn de zumbis
+        function spawnZombie() {
+            const zombie = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 30, height: 30,
+                health: 30,
+                damage: 5
+            };
+            zombies.push(zombie);
+        }
+
+        function update() {
+            // Alterar fundo para simular noite/dia
+            ctx.fillStyle = isNight ? backgroundColors[1] : backgroundColors[0];
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Atualizar o estado dos zumbis
+            zombies.forEach(zombie => {
+                // Movimento simples em direção ao jogador
+                if (zombie.x < player.x) zombie.x += 1;
+                if (zombie.x > player.x) zombie.x -= 1;
+                if (zombie.y < player.y) zombie.y += 1;
+                if (zombie.y > player.y) zombie.y -= 1;
+
+                // Verificar colisão com o jogador
+                if (Math.abs(player.x - zombie.x) < 30 && Math.abs(player.y - zombie.y) < 30) {
+                    player.health -= zombie.damage;
+                    if (player.health <= 0) {
+                        alert("Você morreu!");
+                        resetGame();
+                    }
+                }
+            });
+
+            // Limpar a tela
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenhar jogador
+            ctx.fillStyle = "#FF6347";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Desenhar zumbis
+            ctx.fillStyle = "#228B22";
+            zombies.forEach(zombie => {
+                ctx.fillRect(zombie.x, zombie.y, zombie.width, zombie.height);
+            });
+
+            // Desenhar itens de comida
+            ctx.fillStyle = "#FFFF00";
+            foodItems.forEach(food => {
+                ctx.fillRect(food.x, food.y, food.width, food.height);
+            });
+
+            // Desenhar poções de cura
+            ctx.fillStyle = "#8A2BE2";
+            potions.forEach(potion => {
+                ctx.fillRect(potion.x, potion.y, potion.width, potion.height);
+            });
+
+            // Atualizar HUD
+            ctx.fillStyle = "black";
+            ctx.fillText("Vida: " + player.health, 10, 20);
+            ctx.fillText("Arma: " + player.weapon, 10, 40);
+            ctx.fillText("Pontos: " + score, 10, 60);
+
+            // Atualizar a barrinha de saúde
+            document.getElementById('healthBar').style.width = player.health + "%";
+
+            // Gerenciar transição de noite/dia
+            if (Math.random() < 0.01) {
+                isNight = !isNight;
+            }
+
+            collectItems();
+            updateHunger();
+            requestAnimationFrame(update);
+        }
+
+        // Movimento do jogador
+        document.getElementById("moveUp").addEventListener("click", () => player.y -= player.speed);
+        document.getElementById("moveDown").addEventListener("click", () => player.y += player.speed);
+        document.getElementById("moveLeft").addEventListener("click", () => player.x -= player.speed);
+        document.getElementById("moveRight").addEventListener("click", () => player.x += player.speed);
+
+        // Gerar zumbis, comida e poções a cada 3 segundos
+        setInterval(spawnZombie, 3000);
+        setInterval(spawnFood, 5000);
+        setInterval(spawnPotion, 7000);
+
+        // Função para reiniciar o jogo
+        function resetGame() {
+            player.x = 100;
+            player.y = 100;
+            player.health = 100;
+            player.hunger = 100;
+            zombies.length = 0;
+            foodItems.length = 0;
+            potions.length = 0;
+            score = 0;
+            spawnZombie();
+        }
+
+        // Inicializar o jogo
+        update();
+    </script>
+</body>
+</html>
