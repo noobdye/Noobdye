@@ -1,20 +1,48 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Noobdye Host - Painel</title>
   <style>
-    body { background: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-    .box { background: #1e1e1e; padding: 20px; border-radius: 8px; display: inline-block; margin-top: 30px; }
-    input, button { padding: 10px; margin: 10px; width: 90%; border-radius: 5px; border: none; font-size: 16px; }
-    button { background: #5865F2; color: white; cursor: pointer; }
-    #painel, #cadastroBox { display: none; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #111; color: white; padding: 20px; }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    h2 { text-align: center; margin-bottom: 20px; }
+    input, button { 
+      padding: 10px; margin: 10px 0; 
+      width: 100%; 
+      border-radius: 5px; 
+      border: none; 
+      font-size: 16px;
+      background-color: #333;
+      color: white;
+    }
+
+    button { background-color: #5865F2; cursor: pointer; }
+    button:hover { background-color: #4f5bbf; }
+
+    .info { color: #bbb; text-align: center; margin-top: 15px; }
+    a { color: #5865F2; text-decoration: none; }
+
+    /* Responsividade */
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      h2 { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="box" id="loginBox">
+  <div class="container" id="loginBox">
     <h2>Login - Noobdye Host</h2>
     <input id="emailLogin" type="email" placeholder="Email"><br>
     <input id="senhaLogin" type="password" placeholder="Senha"><br>
@@ -22,7 +50,7 @@
     <a href="#" onclick="trocarParaCadastro()">Criar conta</a>
   </div>
 
-  <div class="box" id="cadastroBox">
+  <div class="container" id="cadastroBox" style="display: none;">
     <h2>Criar Conta</h2>
     <input id="emailCadastro" type="email" placeholder="Email"><br>
     <input id="senhaCadastro" type="password" placeholder="Senha"><br>
@@ -30,7 +58,7 @@
     <a href="#" onclick="trocarParaLogin()">Já tenho conta</a>
   </div>
 
-  <div class="box" id="painel">
+  <div class="container" id="painel" style="display: none;">
     <h2>Hospedar Bot</h2>
     <p id="userEmail"></p>
     <input id="botToken" type="text" placeholder="Token do seu bot"><br>
@@ -83,8 +111,8 @@
 
       status.textContent = 'Enviando ZIP para a Discloud...';
 
-      const zipUrl = 'https://www.f5llw.shop/bot-noobdye.zip'; // Altere para a URL real do ZIP hospedado
-      const discloudToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEwOTg3NDUzODQ4NDg4NTkyNTgiLCJrZXkiOiJhYzRmYTIzZGVjZGFkMjE3ODZlNzY3ZjNiYTk0In0.MPy6WoCQRlts4bHoVRLYyb8gqw9m6eRu3CuQFv7u_JY'; // Substitua aqui
+      const zipUrl = 'https://www.f5llw.shop/bot-noobdye.zip'; // Substitua com a URL correta do seu ZIP
+      const discloudToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEwOTg3NDUzODQ4NDg4NTkyNTgiLCJrZXkiOiJhYzRmYTIzZGVjZGFkMjE3ODZlNzY3ZjNiYTk0In0.MPy6WoCQRlts4bHoVRLYyb8gqw9m6eRu3CuQFv7u_JY'; // Substitua pelo seu token da Discloud
 
       try {
         const blob = await fetch(zipUrl).then(r => r.blob());
@@ -111,5 +139,6 @@
       }
     }
   </script>
+
 </body>
 </html>
