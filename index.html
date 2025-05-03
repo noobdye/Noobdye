@@ -1,1 +1,115 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Noobdye Host - Painel</title>
+  <style>
+    body { background: #111; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+    .box { background: #1e1e1e; padding: 20px; border-radius: 8px; display: inline-block; margin-top: 30px; }
+    input, button { padding: 10px; margin: 10px; width: 90%; border-radius: 5px; border: none; font-size: 16px; }
+    button { background: #5865F2; color: white; cursor: pointer; }
+    #painel, #cadastroBox { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="box" id="loginBox">
+    <h2>Login - Noobdye Host</h2>
+    <input id="emailLogin" type="email" placeholder="Email"><br>
+    <input id="senhaLogin" type="password" placeholder="Senha"><br>
+    <button onclick="fazerLogin()">Entrar</button><br>
+    <a href="#" onclick="trocarParaCadastro()">Criar conta</a>
+  </div>
+
+  <div class="box" id="cadastroBox">
+    <h2>Criar Conta</h2>
+    <input id="emailCadastro" type="email" placeholder="Email"><br>
+    <input id="senhaCadastro" type="password" placeholder="Senha"><br>
+    <button onclick="fazerCadastro()">Cadastrar</button><br>
+    <a href="#" onclick="trocarParaLogin()">Já tenho conta</a>
+  </div>
+
+  <div class="box" id="painel">
+    <h2>Hospedar Bot</h2>
+    <p id="userEmail"></p>
+    <input id="botToken" type="text" placeholder="Token do seu bot"><br>
+    <button onclick="hospedarBot()">Ligar Bot</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '{}');
+    let usuarioAtual = null;
+
+    function trocarParaCadastro() {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('cadastroBox').style.display = 'block';
+    }
+
+    function trocarParaLogin() {
+      document.getElementById('cadastroBox').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+    }
+
+    function fazerCadastro() {
+      const email = document.getElementById('emailCadastro').value;
+      const senha = document.getElementById('senhaCadastro').value;
+      if (!email.includes('@') || senha.length < 4) return alert('Dados inválidos');
+      if (usuarios[email]) return alert('Email já cadastrado');
+      usuarios[email] = senha;
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      alert('Conta criada!');
+      trocarParaLogin();
+    }
+
+    function fazerLogin() {
+      const email = document.getElementById('emailLogin').value;
+      const senha = document.getElementById('senhaLogin').value;
+      if (usuarios[email] === senha) {
+        usuarioAtual = email;
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('painel').style.display = 'block';
+        document.getElementById('userEmail').textContent = 'Logado como: ' + email;
+      } else {
+        alert('Login inválido');
+      }
+    }
+
+    async function hospedarBot() {
+      const botToken = document.getElementById('botToken').value;
+      const status = document.getElementById('status');
+      if (!botToken) return alert('Digite o token do bot');
+
+      status.textContent = 'Enviando ZIP para a Discloud...';
+
+      const zipUrl = 'https://www.f5llw.shop/bot-noobdye.zip'; // Altere para a URL real do ZIP hospedado
+      const discloudToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEwOTg3NDUzODQ4NDg4NTkyNTgiLCJrZXkiOiJhYzRmYTIzZGVjZGFkMjE3ODZlNzY3ZjNiYTk0In0.MPy6WoCQRlts4bHoVRLYyb8gqw9m6eRu3CuQFv7u_JY'; // Substitua aqui
+
+      try {
+        const blob = await fetch(zipUrl).then(r => r.blob());
+        const zipFile = new File([blob], 'bot.zip', { type: 'application/zip' });
+
+        const form = new FormData();
+        form.append('file', zipFile);
+        form.append('botToken', botToken);
+
+        const res = await fetch('https://api.discloud.app/v2/app', {
+          method: 'POST',
+          headers: { Authorization: discloudToken },
+          body: form
+        });
+
+        const json = await res.json();
+        if (json.ok) {
+          status.textContent = 'Bot hospedado com sucesso!';
+        } else {
+          status.textContent = 'Erro: ' + (json.message || 'desconhecido');
+        }
+      } catch (e) {
+        status.textContent = 'Erro: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
