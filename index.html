@@ -1,144 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Noobdye Host - Painel</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background-color: #111; color: white; padding: 20px; }
-
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: #1e1e1e;
-      border-radius: 8px;
-      padding: 20px;
-    }
-
-    h2 { text-align: center; margin-bottom: 20px; }
-    input, button { 
-      padding: 10px; margin: 10px 0; 
-      width: 100%; 
-      border-radius: 5px; 
-      border: none; 
-      font-size: 16px;
-      background-color: #333;
-      color: white;
-    }
-
-    button { background-color: #5865F2; cursor: pointer; }
-    button:hover { background-color: #4f5bbf; }
-
-    .info { color: #bbb; text-align: center; margin-top: 15px; }
-    a { color: #5865F2; text-decoration: none; }
-
-    /* Responsividade */
-    @media (max-width: 600px) {
-      .container { padding: 15px; }
-      h2 { font-size: 20px; }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noobdye Applications</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-900 text-white font-sans">
+  <div class="container mx-auto p-4">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Noobdye Applications</h1>
+      <div id="user-info" class="flex items-center space-x-4">
+        <!-- Informações do usuário serão inseridas aqui -->
+      </div>
+    </header>
 
-  <div class="container" id="loginBox">
-    <h2>Login - Noobdye Host</h2>
-    <input id="emailLogin" type="email" placeholder="Email"><br>
-    <input id="senhaLogin" type="password" placeholder="Senha"><br>
-    <button onclick="fazerLogin()">Entrar</button><br>
-    <a href="#" onclick="trocarParaCadastro()">Criar conta</a>
-  </div>
+    <main>
+      <!-- Formulário de upload de bot -->
+      <section id="upload-section" class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Hospedar Novo Bot</h2>
+        <form id="upload-form" class="bg-gray-800 p-4 rounded">
+          <div class="mb-4">
+            <label for="bot-token" class="block mb-2">Token do Bot</label>
+            <input type="text" id="bot-token" name="bot-token" class="w-full p-2 rounded bg-gray-700 text-white" required />
+          </div>
+          <div class="mb-4">
+            <label for="bot-file" class="block mb-2">Arquivo ZIP do Bot</label>
+            <input type="file" id="bot-file" name="bot-file" accept=".zip" class="w-full p-2 rounded bg-gray-700 text-white" required />
+          </div>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Enviar</button>
+        </form>
+      </section>
 
-  <div class="container" id="cadastroBox" style="display: none;">
-    <h2>Criar Conta</h2>
-    <input id="emailCadastro" type="email" placeholder="Email"><br>
-    <input id="senhaCadastro" type="password" placeholder="Senha"><br>
-    <button onclick="fazerCadastro()">Cadastrar</button><br>
-    <a href="#" onclick="trocarParaLogin()">Já tenho conta</a>
-  </div>
-
-  <div class="container" id="painel" style="display: none;">
-    <h2>Hospedar Bot</h2>
-    <p id="userEmail"></p>
-    <input id="botToken" type="text" placeholder="Token do seu bot"><br>
-    <button onclick="hospedarBot()">Ligar Bot</button>
-    <p id="status"></p>
+      <!-- Lista de bots hospedados -->
+      <section id="bots-section">
+        <h2 class="text-2xl font-semibold mb-4">Seus Bots Hospedados</h2>
+        <div id="bots-list" class="space-y-4">
+          <!-- Bots serão listados aqui -->
+        </div>
+      </section>
+    </main>
   </div>
 
   <script>
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '{}');
-    let usuarioAtual = null;
-
-    function trocarParaCadastro() {
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('cadastroBox').style.display = 'block';
-    }
-
-    function trocarParaLogin() {
-      document.getElementById('cadastroBox').style.display = 'none';
-      document.getElementById('loginBox').style.display = 'block';
-    }
-
-    function fazerCadastro() {
-      const email = document.getElementById('emailCadastro').value;
-      const senha = document.getElementById('senhaCadastro').value;
-      if (!email.includes('@') || senha.length < 4) return alert('Dados inválidos');
-      if (usuarios[email]) return alert('Email já cadastrado');
-      usuarios[email] = senha;
-      localStorage.setItem('usuarios', JSON.stringify(usuarios));
-      alert('Conta criada!');
-      trocarParaLogin();
-    }
-
-    function fazerLogin() {
-      const email = document.getElementById('emailLogin').value;
-      const senha = document.getElementById('senhaLogin').value;
-      if (usuarios[email] === senha) {
-        usuarioAtual = email;
-        document.getElementById('loginBox').style.display = 'none';
-        document.getElementById('painel').style.display = 'block';
-        document.getElementById('userEmail').textContent = 'Logado como: ' + email;
-      } else {
-        alert('Login inválido');
+    // Função para obter informações do usuário
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/api/user');
+        if (!response.ok) throw new Error('Não autenticado');
+        const user = await response.json();
+        document.getElementById('user-info').innerHTML = `
+          <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="Avatar" class="w-10 h-10 rounded-full" />
+          <span>${user.username}#${user.discriminator}</span>
+        `;
+      } catch (error) {
+        // Redirecionar para login se não autenticado
+        window.location.href = '/login';
       }
     }
 
-    async function hospedarBot() {
-      const botToken = document.getElementById('botToken').value;
-      const status = document.getElementById('status');
-      if (!botToken) return alert('Digite o token do bot');
+    // Função para lidar com o envio do formulário de upload
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = document.getElementById('bot-token').value;
+      const fileInput = document.getElementById('bot-file');
+      const file = fileInput.files[0];
+      if (!token || !file) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+      }
 
-      status.textContent = 'Enviando ZIP para a Discloud...';
-
-      const zipUrl = 'https://www.f5llw.shop/bot-noobdye.zip'; // Substitua com a URL correta do seu ZIP
-      const discloudToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEwOTg3NDUzODQ4NDg4NTkyNTgiLCJrZXkiOiJhYzRmYTIzZGVjZGFkMjE3ODZlNzY3ZjNiYTk0In0.MPy6WoCQRlts4bHoVRLYyb8gqw9m6eRu3CuQFv7u_JY'; // Substitua pelo seu token da Discloud
+      const formData = new FormData();
+      formData.append('token', token);
+      formData.append('file', file);
 
       try {
-        const blob = await fetch(zipUrl).then(r => r.blob());
-        const zipFile = new File([blob], 'bot.zip', { type: 'application/zip' });
-
-        const form = new FormData();
-        form.append('file', zipFile);
-        form.append('botToken', botToken);
-
-        const res = await fetch('https://api.discloud.app/v2/app', {
+        const response = await fetch('/api/upload', {
           method: 'POST',
-          headers: { Authorization: discloudToken },
-          body: form
+          body: formData
         });
-
-        const json = await res.json();
-        if (json.ok) {
-          status.textContent = 'Bot hospedado com sucesso!';
+        const result = await response.json();
+        if (response.ok) {
+          alert('Bot enviado com sucesso!');
+          // Atualizar a lista de bots
+          fetchBots();
         } else {
-          status.textContent = 'Erro: ' + (json.message || 'desconhecido');
+          alert('Erro ao enviar o bot: ' + result.error);
         }
-      } catch (e) {
-        status.textContent = 'Erro: ' + e.message;
+      } catch (error) {
+        console.error('Erro ao enviar o bot:', error);
+        alert('Erro ao enviar o bot.');
+      }
+    });
+
+    // Função para obter e exibir os bots hospedados
+    async function fetchBots() {
+      try {
+        const response = await fetch('/api/bots');
+        const bots = await response.json();
+        const botsList = document.getElementById('bots-list');
+        botsList.innerHTML = '';
+        bots.forEach(bot => {
+          const botElement = document.createElement('div');
+          botElement.className = 'bg-gray-800 p-4 rounded';
+          botElement.innerHTML = `
+            <h3 class="text-xl font-bold mb-2">${bot.name}</h3>
+            <p><strong>Status:</strong> ${bot.status}</p>
+            <p><strong>RAM:</strong> ${bot.ramUsage} MB</p>
+            <p><strong>Token:</strong> ${bot.token}</p>
+            <!-- Adicione botões para editar/remover se necessário -->
+          `;
+          botsList.appendChild(botElement);
+        });
+      } catch (error) {
+        console.error('Erro ao obter bots:', error);
       }
     }
-  </script>
 
+    // Inicialização
+    fetchUserInfo();
+    fetchBots();
+  </script>
 </body>
 </html>
