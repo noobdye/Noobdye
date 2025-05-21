@@ -2,47 +2,49 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Pesquisa com ChatGPT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Noobdye Search</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #resultado { margin-top: 20px; white-space: pre-wrap; }
-    input, button { padding: 10px; font-size: 16px; }
-    input { width: 300px; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    #resposta {
+      margin-top: 30px;
+      white-space: pre-line;
+    }
   </style>
 </head>
 <body>
-  <h1>ChatGPT para nokias</h1>
-  <input type="text" id="pergunta" placeholder="Digite sua pesquisa aqui" />
+  <h1>Noobdye Search</h1>
+  <input type="text" id="pergunta" placeholder="Digite sua pergunta..."/>
   <button onclick="pesquisar()">Pesquisar</button>
-  
-  <div id="resultado"></div>
+  <div id="resposta"></div>
 
   <script>
     async function pesquisar() {
-      const pergunta = document.getElementById('pergunta').value.trim();
-      const resultado = document.getElementById('resultado');
-      if (!pergunta) {
-        resultado.textContent = 'Por favor, digite uma pergunta.';
-        return;
-      }
+      const pergunta = document.getElementById('pergunta').value;
+      const respostaDiv = document.getElementById('resposta');
+      respostaDiv.innerHTML = "Carregando...";
 
-      resultado.textContent = 'Carregando...';
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: pergunta })
+      });
 
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: pergunta })
-        });
+      const data = await res.json();
 
-        if (!response.ok) {
-          throw new Error('Erro na requisição: ' + response.status);
-        }
-
-        const data = await response.json();
-        resultado.textContent = data.resposta;
-      } catch (err) {
-        resultado.textContent = 'Erro: ' + err.message;
+      if (res.ok) {
+        respostaDiv.innerText = data.message;
+      } else {
+        respostaDiv.innerText = "Erro: " + (data.error?.message || "Erro desconhecido");
       }
     }
   </script>
