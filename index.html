@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pesquisa com ChatGPT</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #resultado { margin-top: 20px; white-space: pre-wrap; }
+    input, button { padding: 10px; font-size: 16px; }
+    input { width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>Pesquisa estilo Google com ChatGPT</h1>
+  <input type="text" id="pergunta" placeholder="Digite sua pesquisa aqui" />
+  <button onclick="pesquisar()">Pesquisar</button>
+  
+  <div id="resultado"></div>
+
+  <script>
+    async function pesquisar() {
+      const pergunta = document.getElementById('pergunta').value.trim();
+      const resultado = document.getElementById('resultado');
+      if (!pergunta) {
+        resultado.textContent = 'Por favor, digite uma pergunta.';
+        return;
+      }
+
+      resultado.textContent = 'Carregando...';
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: pergunta })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro na requisição: ' + response.status);
+        }
+
+        const data = await response.json();
+        resultado.textContent = data.resposta;
+      } catch (err) {
+        resultado.textContent = 'Erro: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
