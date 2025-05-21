@@ -1,7 +1,7 @@
 {
   "name": "chatgpt-search",
   "version": "1.0.0",
-  "description": "Site estilo Google usando ChatGPT",
+  "description": "ChatGPT simples",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
